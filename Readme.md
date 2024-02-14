@@ -1292,6 +1292,9 @@ Instalamos la extensión pgstattuple
  ```
 pl1=# create extension pgstattuple;
 CREATE EXTENSION
+```
+
+
 
  ```
 pl1=# SELECT * FROM pgstatindex('idx_kilometros');
