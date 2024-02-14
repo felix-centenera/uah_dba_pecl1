@@ -84,6 +84,11 @@ sudo -u postgres psql
  ALTER USER postgres PASSWORD 'uah';
 ```
 
+----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+
+
 
 Cuestión 0. Configurar el fichero de Error Reporting and Logging de PostgreSQL para
 que aparezcan recogidas las sentencias SQL DDL (Lenguaje de Definición de Datos) +
@@ -290,7 +295,12 @@ pl1=# select COUNT(*) from camiones where empresa='UPS';
 (1 row)
  ```
 
- #------------------------------------------------------------------------------
+
+
+ ```
+  vi /etc/postgresql/16/main/postgresql.conf
+
+#------------------------------------------------------------------------------
 # FILE LOCATIONS
 #------------------------------------------------------------------------------
 
@@ -308,6 +318,7 @@ ident_file = '/etc/postgresql/16/main/pg_ident.conf'    # ident configuration fi
 external_pid_file = '/var/run/postgresql/16-main.pid'                   # write an extra PID file
                                         # (change requires restart)
 #------------------------------------------------------------------------------
+ ```
 
  ```
 show data_directory;
@@ -387,6 +398,10 @@ du -sh 16398
  2614 MB
 (1 row)
  ```
+
+----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
 
 
  Cuestión 2. Calcular teóricamente el tamaño en bloques que ocupa la relación
@@ -473,10 +488,15 @@ EXPLAIN select  COUNT(*) from camiones where kilometros=20000 ;
 
 
  ```
-SELECT * FROM pg_statio_all_tables WHERE relname='camiones'; ``` 
+SELECT * FROM pg_statio_all_tables WHERE relname='camiones'; 
+``` 
+
 si nos vamos a la columna heap_blks_read y heap_blks_hit podemos saber que en total ha leido 81730 + 480 = 82018 bloques. Por lo que el gdb ha realizado un lectura secuencial de la tabla.
 
 
+----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
 
 
 
@@ -641,9 +661,9 @@ WHERE indexname = 'camiones2_id_camion_key';
 Cuestión 5. Repetir la cuestión 3 sobre la tabla camiones2 y comparar los resultados
 obtenidos indicando las conclusiones obtenidas.
 
-Cuestión 3. Realizar una consulta que muestre la matrícula de los camiones que tengan
-200000 km. ¿Cuántas tuplas se obtienen y cuántos bloques se leen por Postgres? ¿Por
-qué? Comparar con los resultados obtenidos al aplicar el método visto en teoría.
+  Cuestión 3. Realizar una consulta que muestre la matrícula de los camiones que tengan
+  200000 km. ¿Cuántas tuplas se obtienen y cuántos bloques se leen por Postgres? ¿Por
+  qué? Comparar con los resultados obtenidos al aplicar el método visto en teoría.
 
 
  ```
@@ -775,6 +795,11 @@ pl1=# \dt+
 
  Observamos que no aparecen esas filas, pero el espacio de ocupado es el mismo, esto se debe a que los punteros que apuntaban a la información estan en NULL; pero la información sigue estando en el disco. Observerse que permance el mismo espacio ocupado para tabla e indices asociados.
 
+----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+
+
 
 Cuestión 7. En la situación anterior, ¿Qué operaciones se pueden aplicar a la base de
 datos PL1 para optimizar el rendimiento de esta? Aplicarlas de tal manera que se
@@ -853,6 +878,10 @@ pl1=# \di+
 ```
 
 
+----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+
 
 Cuestión 8. Crear una nueva tabla denominada camiones3 con los mismos campos
 que la cuestión 1 y que esté particionada por el campo kilómetros con la función hash
@@ -893,7 +922,7 @@ Number of partitions: 0
 ```
 
 
-
+```
 CREATE TABLE camiones3_p0 PARTITION OF camiones3 FOR VALUES WITH (MODULUS 20, REMAINDER 0);
 CREATE TABLE camiones3_p1 PARTITION OF camiones3 FOR VALUES WITH (MODULUS 20, REMAINDER 1);
 CREATE TABLE camiones3_p2 PARTITION OF camiones3 FOR VALUES WITH (MODULUS 20, REMAINDER 2);
@@ -913,7 +942,7 @@ CREATE TABLE camiones3_p16 PARTITION OF camiones3 FOR VALUES WITH (MODULUS 20, R
 CREATE TABLE camiones3_p17 PARTITION OF camiones3 FOR VALUES WITH (MODULUS 20, REMAINDER 17);
 CREATE TABLE camiones3_p18 PARTITION OF camiones3 FOR VALUES WITH (MODULUS 20, REMAINDER 18);
 CREATE TABLE camiones3_p19 PARTITION OF camiones3 FOR VALUES WITH (MODULUS 20, REMAINDER 19);
-
+```
 
 ```
  \d+ camiones3;
@@ -1055,6 +1084,10 @@ Hay que tener en cuenta que nuestro VARCHAR(100) del nombre de empresa hace que 
 Utilizar particiones es útil cuando manejanmos grandes cantidades de datos. Al implementarlo mejoramos el rendimiento de las consultas, al estar ordenados los datos por conjuntos, accedemos a la parte que nos interesa. Distribuir la carga de datos entre particiones también mejora el rendimiento al no sobre cargar discos, lo cual esta relacionado con la escalabilidad, podemos distribuir los datos entre distintos discos permitiendonos escalar la capacidad de la base de datos de manera más uniforme y permitir una distribución de carga más equitativa en el sistema.
 
 
+----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+
 
 Cuestión 9. Repetir la cuestión 3 sobre la tabla camiones3 y comparar los resultados
 obtenidos con lo visto anteriormente en las tablas camiones y camiones2
@@ -1133,6 +1166,11 @@ consultas. Entre otros tipos de índices soporta árboles y hash. En este aparta
 trabajar sobre ambos tipos de índices, pudiendo observar cómo se organizan
 internamente y su funcionamiento.
 
+
+----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+
 Cuestión 10. Borrar todas las tablas camiones, camiones2 y camiones3. Crear una
 nueva tabla que se llama camiones como en la cuestión 1 y que tenga cargados todos
 los datos del fichero de texto generado.
@@ -1149,6 +1187,7 @@ DROP TABLE
 pl1=# 
 ```
 
+```
 pl1=# \d
 Did not find any relations.
 ```
@@ -1167,6 +1206,10 @@ pl1=# CREATE TABLE camiones (
 \copy camiones(id_camion,matricula,empresa,kilometros) FROM '/tmp/0000.dat' DELIMITER ';' CSV
 COPY 20000000
 ```
+
+----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
 
 
 Cuestión 11. Crear un índice de tipo árbol para kilómetros. ¿Dónde se almacena
@@ -1258,6 +1301,6 @@ pl1=# SELECT * FROM pgstatindex('idx_kilometros');
 (1 row)
  ```
 
- Vemos que es un arbol de dos niveles, de 64 bloques por cada nivel interno, 17672 bloques(leaf_pages).
+ Vemos que es un arbol de dos niveles, de 64 bloques por cada nivel interno, 17672 bloques(leaf_pages)...CONTINUAR
 
  .....
