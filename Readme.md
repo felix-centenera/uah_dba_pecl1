@@ -1304,6 +1304,54 @@ pl1=# SELECT * FROM pgstatindex('idx_kilometros');
 (1 row)
  ```
 
- Vemos que es un arbol de dos niveles, de 64 bloques por cada nivel interno, 17672 bloques(leaf_pages)...CONTINUAR
+El indice que hemos formado es un B+ con 2 niveles de hojas, donde el tamaño del indice es 138,6MB,que tiene un bloque raíz en la página 290 (Root Block No), donde hay 64 páginas internas que no son ni hojas, no raíz y el árbol tien 17672 páginas, siendo estas las que contienen las claves del indice y los punteros a las filas de las tablas correspondientes. No hay páginas vacías, ni páginas eliminadas en el indice, tiene una densidad de 91,57% lo que indica que caben más datos en la página  y con una fragmentación de las páginas en las hojas del 0%, esto indica que las páginas estan contiguas.
 
- .....
+Este indice esta biene structurado y ocupa un tamaño considerable, lo que tiene 2 niveles y muchas hojas, que hace que el indice sea óptimo, al haber una alta densidad en las páginas hace que haya un alto rendimiento en las consultas. Ademas al no haber páginas vacías y una alta fragmentación son indicativos de una alto mantenimiento del indice.
+
+
+
+----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+Cuestión 12. Determinar el tamaño de bloques que teóricamente tendría de acuerdo
+con lo visto en teoría y el número de niveles. Comparar los resultados obtenidos
+teóricamente con los resultados obtenidos en la cuestión 11.
+
+
+¡HACER LA COMPARACIÓN!
+
+```
+Secundario + no clave  Cajones de Punteros
+Nri = V(Kilometros)  500.001 reg
+Lpbloque = 8 bytes
+Lp(kilómetros) = 4 bytes
+Ya que el tamaño de puntero a bloque en un sistema de 64 bits son 8 bytes.
+Nodo Raíz / Intermedio:
+n * Lpbloque + (n-1)* L(Kilometros) <= Butil
+n*8 + (n-1)4 <= 146336106,6 bytes
+12n – 4 <= 146336106,6 bytes
+n <= 146336106,6 + 4 /12 =
+n <= 12194675,22 punteros a bloque
+Nodo Hoja:
+Nh * (L(kilómetros) + Lbloque) + Lpbloque <= Butil
+nh * (8+4) + 8 <= 146336106,6 bytes
+20nh <= 146336106,6 bytes
+nh <= 146336106,6 / 20 
+nh <= 7316805,33 valores de campo
+
+Nodos Hoja Raíz: 500.001reg / 7316805,33 = 1 (redondear por arriba)
+Número de Bloques = 1bloque es 1 nivel
+Cajones a Punteros  Número de Cajones = 500.001 registros / cajón
+Nc = 20.000.000 / 500.001 reg =40 reg
+Los cajones llevan pRegistro  Lrc = LPreg = 6 bytes
+Frc = 500.001 reg / 7 = 71.428 reg / bloq
+Brc = 40 / 71428 reg/bloq = 1 bloq
+```
+
+
+
+
