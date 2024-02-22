@@ -944,6 +944,60 @@ CREATE TABLE camiones3_p18 PARTITION OF camiones3 FOR VALUES WITH (MODULUS 20, R
 CREATE TABLE camiones3_p19 PARTITION OF camiones3 FOR VALUES WITH (MODULUS 20, REMAINDER 19);
 ```
 
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+CHECK PRIMARY KEYS IN PARTITION
+
+```
+pl1=# CREATE TABLE camiones3 (
+    id_camion SERIAL,
+    matricula CHAR(8),
+    empresa VARCHAR(100),
+    kilometros INT,
+    PRIMARY KEY (kilometros)
+) PARTITION BY HASH(kilometros);
+CREATE TABLE
+
+CREATE TABLE camiones3_p0 PARTITION OF camiones3 FOR VALUES WITH (MODULUS 20, REMAINDER 0);
+pl1=# CREATE TABLE camiones3_p0 PARTITION OF camiones3 FOR VALUES WITH (MODULUS 20, REMAINDER 0);
+CREATE TABLE
+pl1=# 
+
+
+pl1=# \d camiones3;
+                                   Partitioned table "public.camiones3"
+   Column   |          Type          | Collation | Nullable |                   Default                    
+------------+------------------------+-----------+----------+----------------------------------------------
+ id_camion  | integer                |           | not null | nextval('camiones3_id_camion_seq'::regclass)
+ matricula  | character(8)           |           |          | 
+ empresa    | character varying(100) |           |          | 
+ kilometros | integer                |           | not null | 
+Partition key: HASH (kilometros)
+Indexes:
+    "camiones3_pkey" PRIMARY KEY, btree (kilometros)
+Number of partitions: 1 (Use \d+ to list them.)
+
+
+pl1=# \d+
+                                                    List of relations
+ Schema |          Name           |       Type        |  Owner   | Persistence | Access method |    Size    | Description 
+--------+-------------------------+-------------------+----------+-------------+---------------+------------+-------------
+ public | camiones                | table             | postgres | permanent   | heap          | 1413 MB    | 
+ public | camiones3               | partitioned table | postgres | permanent   |               | 0 bytes    | 
+ public | camiones3_id_camion_seq | sequence          | postgres | permanent   |               | 8192 bytes | 
+ public | camiones3_p0            | table             | postgres | permanent   | heap          | 0 bytes    | 
+ public | camiones_id_camion_seq  | sequence          | postgres | permanent   |               | 8192 bytes | 
+(5 rows)
+
+
+```
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
 ```
  \d+ camiones3;
                                                               Partitioned table "public.camiones3"
