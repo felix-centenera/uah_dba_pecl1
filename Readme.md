@@ -1463,7 +1463,7 @@ show block_size;
 ------------
  8192
 
-El indice hash alberga 65530 bloques de cajones del indice hash y 11660 bloques de cajones de overflow, este número alto de páginas de desbordamiento, indican que el indice hash esta experimentando una alta carga de datos, que afecta al rendimiento debido a un mayor tiempo de acceso a las páginas de desbordamiento. El numero de páginas de cubos es demasiado bajo con el número total de elementos activos (live_items = 20.000.000), esto podría sugerir una alta frágmentación y por ello reducir el rendimiento de las consultas de un indice hash y secundo mi tesis de que este indice hash reduce el rendimiento de las consultas ya que postgres no lo utiliza para buscar y utiliza el btree.
+El indice hash alberga 65530 cajones del indice hash y 11660 bloques de cajones de overflow, este número alto de páginas de desbordamiento, indican que el indice hash esta experimentando una alta carga de datos, que afecta al rendimiento debido a un mayor tiempo de acceso a las páginas de desbordamiento. El numero de páginas de cubos es demasiado bajo con el número total de elementos activos (live_items = 20.000.000), esto podría sugerir una alta frágmentación y por ello reducir el rendimiento de las consultas de un indice hash y secundo mi tesis de que este indice hash reduce el rendimiento de las consultas ya que postgres no lo utiliza para buscar y utiliza el btree.
 Con los datos obtenidos anteriormente calculamos el número medio de tuplas por cajón que resulta de la división de los live_items / bucket_pages --> 20.000.000/65536 = 304,63 número medio de tuplas por cajón.
 
 ```
