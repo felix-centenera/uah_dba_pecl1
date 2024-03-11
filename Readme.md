@@ -923,6 +923,14 @@ CREATE TABLE camiones3 (
 ```
 
 
+CREATE TABLE camiones3 (
+    id_camion SERIAL,
+    matricula CHAR(8),
+    empresa VARCHAR(100),
+    kilometros INT
+) PARTITION BY HASH(kilometros);
+
+
 ```
 \d camiones3;
                                    Partitioned table "public.camiones3"
@@ -948,6 +956,7 @@ CREATE TABLE camiones3_p4 PARTITION OF camiones3 FOR VALUES WITH (MODULUS 20, RE
 CREATE TABLE camiones3_p5 PARTITION OF camiones3 FOR VALUES WITH (MODULUS 20, REMAINDER 5);
 CREATE TABLE camiones3_p6 PARTITION OF camiones3 FOR VALUES WITH (MODULUS 20, REMAINDER 6);
 CREATE TABLE camiones3_p7 PARTITION OF camiones3 FOR VALUES WITH (MODULUS 20, REMAINDER 7);
+CREATE TABLE camiones3_p8 PARTITION OF camiones3 FOR VALUES WITH (MODULUS 20, REMAINDER 8);
 CREATE TABLE camiones3_p9 PARTITION OF camiones3 FOR VALUES WITH (MODULUS 20, REMAINDER 9);
 CREATE TABLE camiones3_p10 PARTITION OF camiones3 FOR VALUES WITH (MODULUS 20, REMAINDER 10);
 CREATE TABLE camiones3_p11 PARTITION OF camiones3 FOR VALUES WITH (MODULUS 20, REMAINDER 11);
@@ -1904,84 +1913,7 @@ Brc = 40 / 71428 reg/bloq = 1 bloq
 ```
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-HUGO
-Cuestión 13. Crear un índice de tipo hash para el campo kilómetros. Dónde se
-almacena físicamente ese índice? ¿Qué tamaño tiene? ¿Cuántos bloques tiene?
-¿Cuántos cajones tiene? ¿Cuántas tuplas tiene de media un cajón? Indicar el
-procedimiento seguido e incluir el código SQL utilizado.
 
-```
-create index indice_HASH from camiones using HASH(kilometros);
-
-```
-
-
-Con esto generamos un indice de tipo HASH y comprobamos que es HASH, ya que es access method indica HASH, en cuanto al tamaño del indice también lo podemos observar en la tabla y en este caso es de 603 MB.
-
-```
-\di+
-```
-                                                List of relations
- Schema |          Name          | Type  | Owner |  Table   | Persistence | Access method |  Size  | Description 
---------+------------------------+-------+-------+----------+-------------+---------------+--------+-------------
- public | camiones_id_camion_key | index | hol   | camiones | permanent   | btree         | 428 MB | 
- public | camiones_pkey          | index | hol   | camiones | permanent   | btree         | 783 MB | 
- public | idx_kilometros         | index | hol   | camiones | permanent   | btree         | 139 MB | 
- public | indice_hash            | index | hol   | camiones | permanent   | hash          | 603 MB |
-
- Para saber ¿donde se almacena físicamente el indice?, me sirve del comando pg_class y mediante la columna relfilenode, que me dice el nodo en el que se almacena el indice que es el "16457", y con esto podemos saber el lugar físico en el que se almacena el indice mediante pg_relation_filepath, esto nos muestra que se situa en físicamente en el "base/16401/16457", esto indica que se situa en el directorio 'base' que es donde se almacena los datos de la base de datos, '16401' es el OID del espacio de tablas al que pertenece la relación y el '16457', es el identificador de nodo de archivo de la relación, de aquí también podemos obtener el numero de cajones del indice
-
-(FELIX PRUEBALO TU A VER SI TE ESCUPE LO MISMO: "16457"	"indice_hash"	"2200"	0	0	"10"	"405"	"16457"	0	77198	2e+07	0	0	false	false	"p"	"i"	1	0	false	false	false	false	false	true	"n"	false	0	"0"	"0", ya que hya un apartado que dice file partition y en los apartado anteriores hay que hacer una partición y yo no la tengo hecha.)
-```
- select * from pg_class where relname ilike 'indice_hash';
-```
->"16457"	"indice_hash"	"2200"	0	0	"10"	"405"	"16457"	0	77198	2e+07	0	0	false	false	"p"	"i"	1	0	false	false	false	false	false	true	"n"	false	0	"0"	"0"
-
-```
-select pg_relation_filepath(16457);select pg_relation_filepath(16457);
-```
->"base/16401/16457"
-
-Para saber cuantos bloques tiene el indice diviendo el tamaño de archivo entre el tamaño de bloque. El tamaño de archivo lo podemos obtener pg_relation_size y el numero de nodo del indice, que lo sabemos del comando anterior y obtenemos el tamaño de archivo del indice que ocupa 632406016 bytes y con el tamaño de bloque de Postgres SQL obtenido con show block_size, que es de 8192 bytes / bloque, de la división de 632406016 bytes / 8192 bytes / bloque = 77198 bloques.
-
-```
-select pg_relation_size(16457);
-
-```
->632406016 bytes
-
-```
-show block_size;
-
-
-
-```
->  block_size 
-------------
- 8192
-
-El indice hash alberga 65530 bloques de cajones del indice hash y 11660 bloques de cajones de overflow, este número alto de páginas de desbordamiento, indican que el indice hash esta experimentando una alta carga de datos, que afecta al rendimiento debido a un mayor tiempo de acceso a las páginas de desbordamiento. El numero de páginas de cubos es demasiado bajo con el número total de elementos activos (live_items = 20.000.000), esto podría sugerir una alta frágmentación y por ello reducir el rendimiento de las consultas de un indice hash y secundo mi tesis de que este indice hash reduce el rendimiento de las consultas ya que postgres no lo utiliza para buscar y utiliza el btree.
-Con los datos obtenidos anteriormente calculamos el número medio de tuplas por cajón que resulta de la división de los live_items / bucket_pages --> 20.000.000/65536 = 304,63 número medio de tuplas por cajón.
-
-```
-select * from pgstathashindex('indice_hash');
-```
-<img width="851" alt="Captura de pantalla 2024-02-20 a las 19 39 21" src="https://github.com/HugoOvide/BBDA-11--...../assets/159030158/f475298a-59c1-47a9-ae22-ab1a199a83be">
-
-```
-select * from pg_stat_user_indexes;
-```
-<img width="848" alt="Captura de pantalla 2024-02-20 a las 19 42 20" src="https://github.com/HugoOvide/BBDA-11--...../assets/159030158/ab63f206-f5e3-4b42-9539-42dbef06f1e8">
-
-
-
-(2155,107),(5761,86),(12489,73),(15053,54),(16780,13),(29954,85),(34971,65),(42089,40),(42361,37),(42420,67),(46650,17),(47839,94),(50309,106),(52495,20),(53427,22),(57550,66),(57636,6),(63799,100),(63949,29),(77905,46),(78789,84),(86456,19),(88159,41),(93592,93),(97971,1),(98266,55),(103939,93),(105702,18),(111945,107),(113776,96),(114314,93),(120605,49),(120900,92),(120912,31),(128376,71),(129721,49),(129750,82),(130020,46),(132955,14),(137083,111),(138078,82),(144738,31),(148425,14),(153208,45),(155890,32),(160976,108),(161874,70),(166415,91),(166935,5),(173506,112)
-
-
-
-
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-FELIX
 
 Cuestión 13. Crear un índice de tipo hash para el campo kilómetros. Dónde se
 almacena físicamente ese índice? ¿Qué tamaño tiene? ¿Cuántos bloques tiene?
@@ -2463,8 +2395,9 @@ Cuestión 19. ¿Qué conclusiones se puede obtener de la gestión y organizació
 PostgreSQL sobre los dos índices árbol y hash que se han creado y han sido analizados?
 ¿Por qué? Comparar con lo visto en teoría.
 
+Hemos observado que los árboles B+ son altamente eficientes para consultas de rango o claves, mientras que los índices hash son eficientes para buscar un valor específico pero menos eficientes para consultas de rango. En cuanto a las operaciones de inserción y eliminación, los árboles B+ parecen ser más eficientes.
 
-!!!!!!!!!!!!!!!!!!!!!!!!TO_DO!!!!!!!!!!!!!!!!!!!!!!!!
+Es importante destacar que al comparar la teoría con la práctica, hemos notado que los árboles B+ no utilizan cajones de punteros como se ha discutido en la teoría, especialmente cuando el campo no clave es secundario. En su lugar, los propios nodos hoja almacenan los registros de los campos, sin depender de otra estructura subyacente de cajones de punteros.
 
 ----------------------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------------------------

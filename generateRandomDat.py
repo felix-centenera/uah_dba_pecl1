@@ -10,7 +10,7 @@ def obtener_nombres_empresas():
     with open('companies.csv', newline='') as csvfile:
         reader = csv.reader(csvfile)
         for row in reader:
-            nombres_empresas.append(row[1])  # La segunda columna contiene los nombres de las empresas
+            nombres_empresas.append(row[1])  s
     return nombres_empresas
 
 def generar_matricula():
@@ -30,7 +30,7 @@ def generar_datos_fichero(num_camiones):
             kilometros = random.randint(0, 500000)
             nombre_empresa = random.choice(nombres_empresas)
             data.write(f"{id_camion};{matricula};{nombre_empresa};{kilometros}\n")
-            #data.write(f"{nombre_empresa} \n")
+            
 
 #generar_datos_fichero(10)
 generar_datos_fichero(20000000)
