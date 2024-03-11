@@ -1769,12 +1769,13 @@ pl1=# SELECT * FROM pgstatindex('idx_kilometros');
 (1 row)
  ```
 
+ ```
 pl1=# SELECT COUNT (*) FROM bt_multi_page_stats('idx_kilometros', 1, 17736) WHERE type = 'l';
  count 
 -------
  17672
 (1 row)
-
+ ```
 
 ----------------------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------------------------
@@ -2399,14 +2400,18 @@ pl1=# SELECT * FROM pg_stat_user_indexes;
  17060 |      17176 | public     | camiones     | indice_hash_kilometro  |        1 | 2024-03-02 20:13:50.350959+00 |           34 |             0
  ```
 
+
 Nos dice que no ha tenido que ir a disco para leer los datos, los ha cargado de cache. Ademas nos dice que ha cargado 34 bloques desde cache. Parece que ha usado un indice, un bloque, para leer, también de cache.
 Viendo el uso de indices, vemos como ha recogido 34 tuplas. Con un bloque de indice, ha conseguido recuperarnos 34 tuplas, las cuales parecen estar en 34 bloques. Podemos ver que el indice que ha usado es de tipo hash.
+
+ ```
 pl1=# SELECT COUNT(*) FROM camiones WHERE kilometros = '50000';
  count 
 -------
     34
 (1 row)
-
+ ```
+ 
 Si contamos el número de tuplas que se obtienen, cuadra.
 
 Cuando creamos un indice de tipo hash sobre KM, vimos que teóricamente cada cajón hash debería ser de un bloque, y que el cajón de punteros que se debería crear puesto que estamos ante un campo secundario+ campo no clave, también sería de un bloque.
