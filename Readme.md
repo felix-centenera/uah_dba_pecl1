@@ -2316,11 +2316,15 @@ el proceso seguido para crear cada tipo de índice? Incluir el código SQL utili
 ello.
 
 Podemos crear un indice sobre el campo kilometros de tipo BTree, pero no será primario, puesto que la tabla no esta ordenado por el campo kilómetros.
+
+```
 create index idx_kilometros ON camiones (kilometros);
 pl1=# create index indice_HASH_idcamion on camiones using HASH(id_camion);
 CREATE INDEX
 pl1=# create index indice_HASH_kilometro on camiones using HASH(kilometros);
 CREATE INDEX
+```
+
 ----------------------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------------------------
