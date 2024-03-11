@@ -2057,6 +2057,7 @@ Numero de nodos=  76629 +  381 =77010 bloques,  ; Que no coincide con el número
 ¿Cuántas tuplas tiene un bloque de cada nivel?
 
 Obtenemos el bloque raiz:41827
+
 NIVEL RAIZ: 
 -------------
 
