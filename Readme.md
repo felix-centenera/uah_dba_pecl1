@@ -2411,7 +2411,7 @@ pl1=# SELECT COUNT(*) FROM camiones WHERE kilometros = '50000';
     34
 (1 row)
  ```
- 
+
 Si contamos el número de tuplas que se obtienen, cuadra.
 
 Cuando creamos un indice de tipo hash sobre KM, vimos que teóricamente cada cajón hash debería ser de un bloque, y que el cajón de punteros que se debería crear puesto que estamos ante un campo secundario+ campo no clave, también sería de un bloque.
@@ -3149,6 +3149,7 @@ SELECT * FROM pg_stat_reset();
 SELECT * FROM camiones3 WHERE kilometros >= 400000;
 ```
 
+```
 pl1=# SELECT * FROM pg_statio_user_tables WHERE relname='camiones3_p0' or relname='camiones3_p1'
 or relname='camiones3_p2' or relname='camiones3_p3' or relname='camiones3_p4' or relname='camiones3_p5' 
 or relname='camiones3_p6' or relname='camiones3_p7' or relname='camiones3_p8' or relname='camiones3_p9'; 
@@ -3165,6 +3166,7 @@ or relname='camiones3_p6' or relname='camiones3_p7' or relname='camiones3_p8' or
  17410 | public     | camiones3_p8 |          16622 |          1490 |               |              |                 |                |                |              
  17414 | public     | camiones3_p9 |          16566 |          1546 |               |              |                 |                |                |              
 (10 rows)
+```
 
 Al igual que nos ocurre antes, vemos como accede a la partición definida:
   16622 bloques de disco para datos y 1490 bloque de cache para datos.
@@ -3174,14 +3176,15 @@ Al igual que nos ocurre antes, vemos como accede a la partición definida:
 
 3B.PRIMA para comparar valor concreto Mostrar los camiones con 400000 km en camiones.
 
-
+```
 pl1=# SELECT * FROM pg_statio_user_tables WHERE relname='camiones' ;
  relid | schemaname | relname  | heap_blks_read | heap_blks_hit | idx_blks_read | idx_blks_hit | toast_blks_read | toast_blks_hit | tidx_blks_read | tidx_blks_hit 
 -------+------------+----------+----------------+---------------+---------------+--------------+-----------------+----------------+----------------+---------------
  17060 | public     | camiones |             41 |             0 |             2 |            0 |                 |                |                |              
 (1 row)
+```
 
-
+```
 pl1=# SELECT * FROM pg_stat_user_indexes;
  relid | indexrelid | schemaname | relname  |      indexrelname       | idx_scan |         last_idx_scan         | idx_tup_read | idx_tup_fetch 
 -------+------------+------------+----------+-------------------------+----------+-------------------------------+--------------+---------------
@@ -3195,6 +3198,8 @@ pl1=# SELECT * FROM pg_stat_user_indexes;
  17060 |      17179 | public     | camiones | indice_empresa_hash     |        0 |                               |            0 |             0
  17060 |      17180 | public     | camiones | indice_km_hash          |        1 | 2024-03-03 01:19:34.954683+00 |           41 |             0
 (9 rows)
+```
+
 
 Ha usado 41 bloque de disco de disco de datos y 2 bloques de disco de indice.
 Coste de 41+2=43 bloques
