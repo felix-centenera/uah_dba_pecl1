@@ -1889,6 +1889,8 @@ Número de tuplas de media:
 ----------------------------------------------------------------------------------------------------
 BLOCK SIZE
 
+
+```
 pl1=# SELECT name, setting, short_desc, extra_desc FROM pg_settings WHERE name like '%block%' or short_desc LIKE '%block%';
        name        | setting |                  short_desc                  |                         extra_desc                         
 -------------------+---------+----------------------------------------------+------------------------------------------------------------
@@ -1896,11 +1898,14 @@ pl1=# SELECT name, setting, short_desc, extra_desc FROM pg_settings WHERE name l
  recovery_prefetch | try     | Prefetch referenced blocks during recovery.  | Look ahead in the WAL to find references to uncached data.
  wal_block_size    | 8192    | Shows the block size in the write ahead log. | 
 (3 rows)
+
+```
 ----------------------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------
 FILL-FACTOR: Table FILLFACTOR default value is 100
 
+```
 SELECT t.relname AS table_name, 
        t.reloptions
 FROM pg_class t
@@ -1911,7 +1916,7 @@ WHERE t.relname = 'camiones'
 ------------+------------
  camiones   | 
 (1 row)
-
+```
 
 Por tanto 100%
 
